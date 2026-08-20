@@ -74,3 +74,6 @@ def test_check_cuped_test_detects_effect():
 
     assert pvalue < 0.05, f"Expected significant pvalue for strong effect, got {pvalue}"
     assert delta > 10, f"Expected delta close to +15, got {delta}"
+
+
+print(np.random.normal(50, 10, 100) + np.random.normal(0, 3, 100) + 15)
