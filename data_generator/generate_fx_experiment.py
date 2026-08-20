@@ -191,3 +191,15 @@ if __name__ == "__main__":
 
     save_to_sqlite(tables, db_path="ab_platform.db")
     print("\nSaved to ab_platform.db")
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
