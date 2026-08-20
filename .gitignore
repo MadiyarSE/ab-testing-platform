@@ -4,3 +4,5 @@ __pycache__/
 *.db
 .DS_Store
 .env
+ab_platform_dbt/target/
+ab_platform_dbt/logs/
