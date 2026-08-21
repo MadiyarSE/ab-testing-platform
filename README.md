@@ -6,7 +6,7 @@ causal inference techniques on realistic fintech transaction data.
 ## Status: In progress
 - [x] Data generator (FX fee reduction experiment)
 - [x] Stats engine (t-test, linearization, CUPED, stratification)
-- [ ] dbt models
+- [x] dbt models
 - [ ] Airflow orchestration
 - [ ] Dashboard
 
