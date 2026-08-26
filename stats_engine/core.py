@@ -6,15 +6,15 @@ from scipy import stats
 
 
 def get_ttest_pvalue(metrics_a_group, metrics_b_group):
-    """Применяет тест Стьюдента, возвращает pvalue."""
+    """Applies Student's t-test and returns the p-value."""
     return stats.ttest_ind(metrics_a_group, metrics_b_group).pvalue
 
 
 def check_linearization(a, b):
-    """Проверка гипотезы с помощью линеаризации.
+    """Checks the hypothesis using linearization.
 
-    a: List[List], список массивов метрики пользователей контрольной группы
-    b: List[List], список массивов метрики пользователей пилотной группы
+    a: List[List], list of user metric arrays for the control group
+    b: List[List], list of user metric arrays for the pilot group
     """
     a_x = np.array([np.sum(row) for row in a])
     a_y = np.array([len(row) for row in a])
@@ -29,7 +29,7 @@ def check_linearization(a, b):
 
 
 def calculate_theta(y_control, y_pilot, x_control, x_pilot):
-    """Вычисляет theta (коэффициент CUPED) по данным двух групп."""
+    """Calculates theta (CUPED coefficient) using data from both groups."""
     y = np.hstack([y_control, y_pilot])
     x = np.hstack([x_control, x_pilot])
     covariance = np.cov(x, y)[0, 1]
@@ -38,7 +38,7 @@ def calculate_theta(y_control, y_pilot, x_control, x_pilot):
 
 
 def check_cuped_test(df_control, df_pilot, covariate_column):
-    """Проверяет гипотезу о равенстве средних с использованием CUPED."""
+    """Tests the hypothesis of mean equality using CUPED."""
     theta = calculate_theta(
         df_control['metric'], df_pilot['metric'],
         df_control[covariate_column], df_pilot[covariate_column]
@@ -51,9 +51,9 @@ def check_cuped_test(df_control, df_pilot, covariate_column):
 
 
 def get_ttest_strat_pvalue(metrics_strat_a_group, metrics_strat_b_group):
-    """Применяет постстратификацию, возвращает pvalue.
+    """Applies post-stratification and returns the p-value.
 
-    Веса страт считаем по данным обеих групп.
+    Stratum weights are calculated using data from both groups.
     """
     weights = pd.Series(
         np.vstack([metrics_strat_a_group, metrics_strat_b_group])[:, 1]
@@ -83,3 +83,16 @@ def get_ttest_strat_pvalue(metrics_strat_a_group, metrics_strat_b_group):
     t = delta_mean_strat / std_mean_strat
     pvalue = (1 - stats.norm.cdf(np.abs(t))) * 2
     return pvalue, delta_mean_strat
+
+
+def calculate_pooled_p(count_a, nobs_a, count_b, nobs_b):
+    return (count_a + count_b) / (nobs_a + nobs_b)
+
+def get_proportions_ztest_pvalue(count_a, nobs_a, count_b, nobs_b):
+    p = calculate_pooled_p(count_a, nobs_a, count_b, nobs_b)
+    p_a = count_a / nobs_a
+    p_b = count_b / nobs_b
+    se = np.sqrt(p * (1 - p) * (1/nobs_a + 1/nobs_b))
+    z = (p_b - p_a) / se
+    p_value = 2 * (1 - stats.norm.cdf(abs(z)))
+    return p_value
