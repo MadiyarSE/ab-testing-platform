@@ -6,6 +6,14 @@ ab_platform_dbt:
       database: ab_platform
       schema: 'main'
       schemas_and_paths:
+        main: '/Users/kadiaralimov/Documents/Programming/ab-testing-platform/ab_platform.db'
+      schema_directory: '/Users/kadiaralimov/Documents/Programming/ab-testing-platform'
+    docker:
+      type: sqlite
+      threads: 1
+      database: ab_platform
+      schema: 'main'
+      schemas_and_paths:
         main: '/opt/ab-testing-platform/ab_platform.db'
       schema_directory: '/opt/ab-testing-platform'
   target: dev

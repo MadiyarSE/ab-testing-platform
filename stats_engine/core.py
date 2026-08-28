@@ -96,3 +96,60 @@ def get_proportions_ztest_pvalue(count_a, nobs_a, count_b, nobs_b):
     z = (p_b - p_a) / se
     p_value = 2 * (1 - stats.norm.cdf(abs(z)))
     return p_value
+
+
+def holm_correction(pvalues, alpha=0.05):
+    """
+    :param pvalues: list of p-values (e.g. [0.01, 0.03, 0.20])
+    :param alpha: overall significance level
+    :return: list of bools, same length as pvalues — True if hypothesis is rejected
+    """
+    m = len(pvalues)
+    rejected = [False] * m
+    sorted_indices = sorted(range(m), key=lambda i: pvalues[i])
+
+    for position, idx in enumerate(sorted_indices):
+        i = position + 1
+        alpha_i = alpha / (m - i + 1)
+
+        if pvalues[idx] < alpha_i:
+            rejected[idx] = True
+        else:
+            break
+    return rejected
+
+
+def calculate_sample_size(baseline_rate, mde, mde_type="relative", alpha=0.05, power=0.8):
+    """
+    Calculates required sample size per group for a two-proportion z-test.
+
+    :param baseline_rate: control group conversion rate (0-1)
+    :param mde: minimum detectable effect
+    :param mde_type: "relative" (e.g. 0.1 = +10% relative lift) or
+        "absolute" (e.g. 0.02 = +2 percentage points)
+    :param alpha: significance level (two-sided)
+    :param power: statistical power (1 - beta)
+    :return: dict with p1, p2, absolute_mde, relative_mde, sample_size_per_group, total_sample_size
+    """
+    p1 = baseline_rate
+    if mde_type == "relative":
+        p2 = p1 * (1 + mde)
+    else:
+        p2 = p1 + mde
+
+    z_alpha = stats.norm.ppf(1 - alpha / 2)
+    z_beta = stats.norm.ppf(power)
+
+    pooled_variance_term = p1 * (1 - p1) + p2 * (1 - p2)
+    n = ((z_alpha + z_beta) ** 2 * pooled_variance_term) / (p2 - p1) ** 2
+
+    n = int(np.ceil(n))
+
+    return {
+        "p1": p1,
+        "p2": p2,
+        "absolute_mde": p2 - p1,
+        "relative_mde": (p2 - p1) / p1 if p1 > 0 else float("nan"),
+        "sample_size_per_group": n,
+        "total_sample_size": n * 2,
+    }

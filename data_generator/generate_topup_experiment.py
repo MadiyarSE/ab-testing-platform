@@ -118,7 +118,7 @@ def generate_topup_experiment(n_users=10000, seed=42, experiment_start=datetime(
     df_topups = pd.concat(all_topups, ignore_index=True)
     df_topups["transaction_id"] = [str(uuid.uuid4()) for _ in range(len(df_topups))]
 
-    return {"users": df_users, "topup_transactions": df_topups}
+    return {"users_topup": df_users, "topup_transactions": df_topups}
 
 
 def save_to_sqlite(tables, db_path="ab_platform.db"):
@@ -136,7 +136,7 @@ if __name__ == "__main__":
     tables = generate_topup_experiment(n_users=10000)
 
     print("=== users ===")
-    print(tables["users"]["pilot"].value_counts())
+    print(tables["users_topup"]["pilot"].value_counts())
 
     print("\n=== topup_transactions ===")
     print(tables["topup_transactions"].head())
@@ -145,7 +145,7 @@ if __name__ == "__main__":
     print(f"Overall chargeback rate: {tables['topup_transactions']['is_chargeback'].mean():.4f}")
 
     # breakdown by group -- sanity check that pilot > control, as designed
-    merged = tables["topup_transactions"].merge(tables["users"], on="user_id")
+    merged = tables["topup_transactions"].merge(tables["users_topup"], on="user_id")
     print("\n=== Fraud/chargeback rate by group ===")
     print(merged.groupby("pilot")[["is_fraud", "is_chargeback"]].mean())
 
