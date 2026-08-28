@@ -1,6 +1,6 @@
 """
-Анализ эксперимента FX Fee Reduction, используя готовую dbt-таблицу
-mart_ab_test_ready вместо ручной агрегации в Python.
+Analysis of the FX Fee Reduction experiment, using the prepared dbt model
+mart_ab_test_ready instead of manual aggregation in Python.
 """
 
 import sqlite3
@@ -17,7 +17,7 @@ from stats_engine.core import calculate_theta, check_cuped_test, get_ttest_strat
 DB_PATH = "ab_platform.db"
 
 # ---------------------------------------------------------------------------
-# Читаем ГОТОВУЮ таблицу, построенную dbt (никакого groupby/merge здесь!)
+# Read the PREPARED table built by dbt (no groupby/merge in Python!)
 # ---------------------------------------------------------------------------
 
 conn = sqlite3.connect(DB_PATH)
@@ -31,7 +31,7 @@ df_control = df[df['pilot'] == 0]
 df_pilot = df[df['pilot'] == 1]
 
 # ---------------------------------------------------------------------------
-# CUPED (используя ковариату из dbt-модели)
+# CUPED (using the covariate pre-computed in the dbt model)
 # ---------------------------------------------------------------------------
 
 cuped_pvalue, cuped_delta = check_cuped_test(df_control, df_pilot, 'cov')
@@ -39,7 +39,7 @@ print(f"\n=== CUPED ===")
 print(f"pvalue = {cuped_pvalue:.6f}, delta = {cuped_delta:.4f}")
 
 # ---------------------------------------------------------------------------
-# Stratification (по country)
+# Stratification (by country)
 # ---------------------------------------------------------------------------
 
 country_map = {c: i for i, c in enumerate(df['country'].unique())}
@@ -53,7 +53,7 @@ print(f"\n=== Stratification (by country) ===")
 print(f"pvalue = {strat_pvalue:.6f}, delta = {strat_delta:.4f}")
 
 # ---------------------------------------------------------------------------
-# Naive t-test (для сравнения)
+# Naive t-test (for comparison)
 # ---------------------------------------------------------------------------
 
 _, naive_pvalue = stats.ttest_ind(df_control['metric'], df_pilot['metric'])

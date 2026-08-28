@@ -8,11 +8,11 @@ from stats_engine.core import get_ttest_strat_pvalue
 
 
 def test_stratified_no_effect():
-    """Если данные из одного распределения в обеих группах — pvalue не значим."""
+    """If data comes from the same distribution in both groups, p-value should not be significant."""
     np.random.seed(42)
     n = 300
 
-    # 2 страты, поровну представлены в обеих группах
+    # 2 strata, equally represented in both groups
     metric_a = np.random.normal(100, 15, n)
     strat_a = np.random.choice([0, 1], size=n)
     a = np.column_stack([metric_a, strat_a])
@@ -27,7 +27,7 @@ def test_stratified_no_effect():
 
 
 def test_stratified_detects_clear_effect():
-    """Явный, сильный эффект между группами должен быть обнаружен."""
+    """A clear, strong effect between groups should be detected."""
     np.random.seed(7)
     n = 300
 
@@ -35,7 +35,7 @@ def test_stratified_detects_clear_effect():
     strat_a = np.random.choice([0, 1], size=n)
     a = np.column_stack([metric_a, strat_a])
 
-    metric_b = np.random.normal(120, 15, n)  # +20 эффект
+    metric_b = np.random.normal(120, 15, n)  # +20 effect
     strat_b = np.random.choice([0, 1], size=n)
     b = np.column_stack([metric_b, strat_b])
 
@@ -46,12 +46,12 @@ def test_stratified_detects_clear_effect():
 
 
 def test_stratified_reduces_variance_vs_naive():
-    """При сильном различии страт по среднему, стратификация должна снижать
-    дисперсию оценки по сравнению с наивным сравнением средних."""
+    """When strata differ strongly in mean values, stratification should reduce
+    the variance of the estimate compared to naive mean comparison."""
     np.random.seed(123)
     n_per_strat = 200
 
-    # strat=0: низкие значения, strat=1: высокие значения (сильное расхождение страт)
+    # strat=0: low values, strat=1: high values (strong variance between strata)
     def make_group(shift=0):
         metric_low = np.random.normal(50 + shift, 5, n_per_strat)
         metric_high = np.random.normal(150 + shift, 5, n_per_strat)

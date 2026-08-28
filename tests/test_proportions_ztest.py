@@ -9,14 +9,14 @@ from stats_engine.core import calculate_pooled_p, get_proportions_ztest_pvalue
 
 
 def test_calculate_pooled_p_known_values():
-    """Проверяем pooled p на простом примере: (10+20)/(100+100) = 0.15."""
+    """Verify pooled p calculation on a simple example: (10+20)/(100+100) = 0.15."""
     pooled_p = calculate_pooled_p(count_a=10, nobs_a=100, count_b=20, nobs_b=100)
 
     assert abs(pooled_p - 0.15) < 1e-9, f"Expected pooled_p=0.15, got {pooled_p}"
 
 
 def test_ztest_no_effect_gives_high_pvalue():
-    """Если пропорции в обеих группах равны, p-value должен быть большим (не значимо)."""
+    """If proportions in both groups are equal, the p-value should be high (non-significant)."""
     pvalue = get_proportions_ztest_pvalue(
         count_a=100, nobs_a=1000, count_b=100, nobs_b=1000
     )
@@ -25,8 +25,8 @@ def test_ztest_no_effect_gives_high_pvalue():
 
 
 def test_ztest_detects_strong_effect():
-    """Z-test должен обнаружить явную, сильную разницу в пропорциях."""
-    # control: 5% conversion, pilot: 15% conversion, большая выборка
+    """Z-test should detect a clear, strong difference in proportions."""
+    # control: 5% conversion, pilot: 15% conversion, large sample size
     pvalue = get_proportions_ztest_pvalue(
         count_a=50, nobs_a=1000, count_b=150, nobs_b=1000
     )
@@ -35,7 +35,7 @@ def test_ztest_detects_strong_effect():
 
 
 def test_ztest_symmetric_regardless_of_group_order():
-    """P-value не должен зависеть от того, какую группу подать первой."""
+    """P-value should not depend on which group is passed first."""
     pvalue_ab = get_proportions_ztest_pvalue(count_a=30, nobs_a=500, count_b=60, nobs_b=500)
     pvalue_ba = get_proportions_ztest_pvalue(count_a=60, nobs_a=500, count_b=30, nobs_b=500)
 
@@ -45,7 +45,7 @@ def test_ztest_symmetric_regardless_of_group_order():
 
 
 def test_ztest_matches_manual_calculation():
-    """Сверяем результат функции с ручным расчётом z-статистики."""
+    """Verify the function output against a manual z-statistic calculation."""
     count_a, nobs_a = 40, 400   # p_a = 0.10
     count_b, nobs_b = 60, 400   # p_b = 0.15
 

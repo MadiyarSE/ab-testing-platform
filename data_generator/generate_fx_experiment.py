@@ -1,14 +1,14 @@
 """
-Генератор синтетических данных для эксперимента "FX Fee Reduction".
+Synthetic data generator for the "FX Fee Reduction" experiment.
 
-Гипотеза: снижение комиссии за обмен валют с 0.5% до 0.2% увеличивает
-частоту обменов, но вопрос — компенсирует ли рост частоты потерю
-маржи с каждой транзакции (revenue = amount * fee).
+Hypothesis: Reducing the FX exchange fee from 0.5% to 0.2% increases transaction 
+frequency, but the key question is whether the frequency lift compensates for 
+the loss in margin per transaction (revenue = amount * fee).
 
-Структура вывода (SQLite):
+Output Structure (SQLite):
     - users: user_id, country, pilot, signup_date
     - transactions_experiment: transaction_id, user_id, date, amount, fee, revenue
-    - transactions_history: то же самое, но за 4 недели ДО эксперимента (для CUPED)
+    - transactions_history: same schema, but for 4 weeks BEFORE the experiment (for CUPED)
 """
 
 import hashlib
@@ -20,23 +20,23 @@ import numpy as np
 import pandas as pd
 
 # ---------------------------------------------------------------------------
-# Split-система (двойное хеширование) — переиспользуем логику из курса
+# Split System (Double Hashing) — Reusing standard experiment allocation logic
 # ---------------------------------------------------------------------------
 
 def get_hash_modulo(value: str, modulo: int, salt: str) -> int:
-    """Вычисляет остаток от деления: hash(value + salt) % modulo."""
+    """Calculates hash modulo: hash(value + salt) % modulo."""
     hash_value = int(hashlib.md5(str.encode(value + salt)).hexdigest(), 16)
     return hash_value % modulo
 
 
 def assign_group(user_id: str, salt: str) -> str:
-    """Второе хеширование: относит пользователя в control/pilot (50/50)."""
+    """Second hash layer: assigns user to control/pilot (50/50 split)."""
     bucket = get_hash_modulo(user_id, 2, salt)
     return "pilot" if bucket == 1 else "control"
 
 
 # ---------------------------------------------------------------------------
-# Параметры стран (для стратификации) — разные "базовые" паттерны трат
+# Country Parameters (for Stratification) — Distinct baseline spending patterns
 # ---------------------------------------------------------------------------
 
 COUNTRY_PARAMS = {
@@ -46,9 +46,9 @@ COUNTRY_PARAMS = {
     "ES": {"weight": 0.15, "mean_amount": 110, "sigma_amount": 0.50, "base_freq": 2.0},
 }
 
-BASE_FEE = 0.005          # 0.5% — стандартная комиссия (control)
-PILOT_FEE = 0.002         # 0.2% — сниженная комиссия (pilot)
-FREQUENCY_LIFT = 1.15     # +15% к частоте обменов у pilot (эластичность спроса)
+BASE_FEE = 0.005          # 0.5% — standard fee (control)
+PILOT_FEE = 0.002         # 0.2% — reduced fee (pilot)
+FREQUENCY_LIFT = 1.15     # +15% transaction frequency lift for pilot (price elasticity)
 
 EXPERIMENT_SALT = "fx_fee_reduction_v1"
 
@@ -67,12 +67,12 @@ def _generate_user_transactions(
     period_start: datetime,
     period_days: int,
 ) -> list[dict]:
-    """Генерирует список FX-транзакций одного пользователя за период."""
+    """Generates a list of FX transactions for a single user over a given period."""
     params = COUNTRY_PARAMS[country]
     fee = PILOT_FEE if is_pilot else BASE_FEE
     freq_multiplier = FREQUENCY_LIFT if is_pilot else 1.0
 
-    # ожидаемое число транзакций за период (масштабируем недельную частоту)
+    # Expected number of transactions during the period (scaled from weekly baseline frequency)
     lam = params["base_freq"] * freq_multiplier * (period_days / 7)
     n_transactions = rng.poisson(lam=max(lam, 0.01))
 
@@ -105,14 +105,14 @@ def generate_fx_experiment(
     history_days: int = 28,
     seed: int = 42,
 ) -> dict[str, pd.DataFrame]:
-    """Генерирует полный синтетический датасет для эксперимента FX fee reduction.
+    """Generates a complete synthetic dataset for the FX fee reduction experiment.
 
-    :return: словарь с тремя DataFrame: 'users', 'transactions_experiment',
-        'transactions_history'.
+    :return: Dictionary containing three DataFrames: 'users', 'transactions_experiment',
+        and 'transactions_history'.
     """
     rng = np.random.default_rng(seed)
 
-    # --- 1. Пользователи + распределение по группам через двойное хеширование ---
+    # --- 1. Users + Group Allocation via Double Hashing ---
     users_rows = []
     for i in range(n_users):
         user_id = f"u{i:06d}"
@@ -129,7 +129,7 @@ def generate_fx_experiment(
         )
     df_users = pd.DataFrame(users_rows)
 
-    # --- 2. Транзакции во время эксперимента ---
+    # --- 2. In-Experiment and Pre-Experiment Transactions ---
     history_start = experiment_start - timedelta(days=history_days)
 
     experiment_rows = []
@@ -142,8 +142,8 @@ def generate_fx_experiment(
                 experiment_start, experiment_days,
             )
         )
-        # история ВСЕГДА генерируется с БАЗОВЫМ fee и БЕЗ лифта частоты —
-        # до эксперимента разницы между будущими control/pilot быть не может
+        # Historical data is ALWAYS generated with BASE fee and WITHOUT frequency lift —
+        # there cannot be a difference between future control/pilot groups before the test starts.
         history_rows.extend(
             _generate_user_transactions(
                 rng, row["user_id"], row["country"], is_pilot=False,
@@ -162,7 +162,7 @@ def generate_fx_experiment(
 
 
 def save_to_sqlite(tables: dict[str, pd.DataFrame], db_path: str = "ab_platform.db") -> None:
-    """Сохраняет сгенерированные таблицы в SQLite."""
+    """Saves generated DataFrames into an SQLite database."""
     conn = sqlite3.connect(db_path)
     try:
         for name, df in tables.items():
@@ -191,15 +191,3 @@ if __name__ == "__main__":
 
     save_to_sqlite(tables, db_path="ab_platform.db")
     print("\nSaved to ab_platform.db")
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    

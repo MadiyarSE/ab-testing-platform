@@ -1,17 +1,17 @@
 """
-Симуляция ежедневного мониторинга эксперимента FX Fee Reduction.
+Simulation of daily monitoring for the FX Fee Reduction experiment.
 
-Демонстрирует "peeking problem": если проверять p-value каждый день
-и останавливаться при первой значимости, реальная ошибка I рода
-оказывается намного выше заявленного alpha.
+Demonstrates the "peeking problem": if you check the p-value every day
+and stop at the first statistically significant result, the actual Type I error 
+rate becomes much higher than the nominal alpha.
 
-Поддерживает два режима:
-- apply_effect=True  -- реальный FX-эксперимент (эффект есть, наш основной кейс)
-- apply_effect=False -- AA-тест (эффекта нет), демонстрирует, как p-value
-  может случайно "нырять" ниже 0.05 даже при отсутствии реального эффекта
+Supports two modes:
+- apply_effect=True  -- Real FX experiment (effect is present, primary use case)
+- apply_effect=False -- AA-test (no effect), demonstrates how the p-value
+  can randomly drop below 0.05 even when no real effect exists
 
-Не является частью основного production-пайплайна (generate -> dbt ->
-analyze) -- это отдельная образовательная симуляция.
+This script is not part of the main production pipeline (generate -> dbt -> analyze).
+It is a standalone educational simulation.
 """
 
 import sys
@@ -25,7 +25,7 @@ sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from stats_engine.core import calculate_theta, check_cuped_test
 
 # ---------------------------------------------------------------------------
-# Параметры симуляции (переиспользуем логику из основного генератора)
+# Simulation parameters (reusing logic from the main generator)
 # ---------------------------------------------------------------------------
 
 COUNTRY_PARAMS = {
@@ -47,10 +47,10 @@ def _sample_country(rng):
 
 
 def _daily_user_revenue(rng, country, is_pilot, apply_effect=True):
-    """Генерирует revenue ОДНОГО пользователя за ОДИН день.
+    """Generates revenue for ONE user for ONE day.
 
-    :param apply_effect: если False -- pilot ведёт себя ТОЧНО так же, как
-        control (чистый AA-тест, никакого реального эффекта).
+    :param apply_effect: If False, the pilot group behaves EXACTLY like 
+        the control group (pure AA-test, no real effect applied).
     """
     params = COUNTRY_PARAMS[country]
 
@@ -61,7 +61,7 @@ def _daily_user_revenue(rng, country, is_pilot, apply_effect=True):
         fee = BASE_FEE
         freq_multiplier = 1.0
 
-    lam = params["base_freq"] * freq_multiplier / 7  # дневная интенсивность
+    lam = params["base_freq"] * freq_multiplier / 7  # Daily event intensity
     n_tx = rng.poisson(lam=max(lam, 0.001))
 
     if n_tx == 0:
@@ -74,12 +74,12 @@ def _daily_user_revenue(rng, country, is_pilot, apply_effect=True):
 
 
 def simulate_daily_peeking(n_users_per_group=1428, n_days=7, seed=42, apply_effect=True):
-    """Симулирует накопление данных день за днём и считает p-value
-    на накопленных данных после каждого дня (naive t-test и CUPED).
+    """Simulates daily data accumulation and calculates p-values 
+    on accumulated data after each day (naive t-test and CUPED).
 
-    :param apply_effect: True -- реальный FX-эксперимент с эффектом.
-        False -- AA-тест (для демонстрации peeking problem).
-    :return: pd.DataFrame с колонками ['day', 'naive_pvalue', 'cuped_pvalue',
+    :param apply_effect: True -- real FX experiment with effect.
+        False -- AA-test (to demonstrate the peeking problem).
+    :return: pd.DataFrame with columns ['day', 'naive_pvalue', 'cuped_pvalue',
         'naive_delta', 'cuped_delta', 'n_users_so_far']
     """
     rng = np.random.default_rng(seed)
@@ -91,8 +91,8 @@ def simulate_daily_peeking(n_users_per_group=1428, n_days=7, seed=42, apply_effe
         users.append({"user_id": i, "country": country, "pilot": pilot})
     users_df = pd.DataFrame(users)
 
-    # историческая ковариата для CUPED -- ВСЕГДА без эффекта (это прошлое,
-    # эксперимент ещё не начался, apply_effect сюда не передаём)
+    # Historical covariate for CUPED -- ALWAYS without effect (this represents the past,
+    # before the experiment started, so apply_effect is not passed here)
     history_revenue = {}
     for _, row in users_df.iterrows():
         history_revenue[row["user_id"]] = sum(

@@ -1,6 +1,6 @@
 """
-Прогоняем существующий stats_engine (линеаризация, CUPED, стратификация)
-на синтетических данных эксперимента FX Fee Reduction.
+Runs the existing stats_engine (linearization, CUPED, stratification)
+on synthetic data from the FX Fee Reduction experiment.
 """
 
 import sqlite3
@@ -13,7 +13,7 @@ DB_PATH = "ab_platform.db"
 
 
 # ---------------------------------------------------------------------------
-# Функции из твоего ноутбука (переиспользуем как есть)
+# Functions from your notebook (reused as-is)
 # ---------------------------------------------------------------------------
 
 def check_linearization(a, b):
@@ -81,7 +81,7 @@ def get_ttest_strat_pvalue(metrics_strat_a_group, metrics_strat_b_group):
 
 
 # ---------------------------------------------------------------------------
-# 1. Читаем данные из SQLite
+# 1. Read data from SQLite
 # ---------------------------------------------------------------------------
 
 conn = sqlite3.connect(DB_PATH)
@@ -93,18 +93,18 @@ conn.close()
 print(f"users: {len(users)}, tx_exp: {len(tx_exp)}, tx_hist: {len(tx_hist)}")
 
 # ---------------------------------------------------------------------------
-# 2. Наивный t-test (baseline — покажет неправильную калибровку)
+# 2. Naive t-test (baseline — shows incorrect calibration/unit of randomization)
 # ---------------------------------------------------------------------------
 
 merged_naive = tx_exp.merge(users[['user_id', 'pilot']], on='user_id')
 naive_a = merged_naive[merged_naive['pilot'] == 0]['revenue']
 naive_b = merged_naive[merged_naive['pilot'] == 1]['revenue']
 _, naive_pvalue = stats.ttest_ind(naive_a, naive_b)
-print(f"\n=== Naive t-test (на чеках) ===")
+print(f"\n=== Naive t-test (per transaction) ===")
 print(f"pvalue = {naive_pvalue:.6f}")
 
 # ---------------------------------------------------------------------------
-# 3. Линеаризация
+# 3. Linearization
 # ---------------------------------------------------------------------------
 
 user_revenue_lists = tx_exp.groupby('user_id')['revenue'].apply(list)
@@ -141,7 +141,7 @@ print(f"\n=== CUPED ===")
 print(f"pvalue = {cuped_pvalue:.6f}, delta = {cuped_delta:.4f}")
 
 # ---------------------------------------------------------------------------
-# 5. Стратификация по country
+# 5. Stratification by country
 # ---------------------------------------------------------------------------
 
 country_map = {c: i for i, c in enumerate(users['country'].unique())}
@@ -156,7 +156,7 @@ print(f"\n=== Stratification (by country) ===")
 print(f"pvalue = {strat_pvalue:.6f}, delta = {strat_delta:.4f}")
 
 # ---------------------------------------------------------------------------
-# Итоговое сравнение
+# Summary comparison
 # ---------------------------------------------------------------------------
 
 print("\n=== SUMMARY ===")

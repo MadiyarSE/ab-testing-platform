@@ -1,5 +1,5 @@
 """
-DAG для оркестрации A/B-платформы:
+DAG for A/B Platform Orchestration:
 generate_data (fx: one-shot, topup: day-by-day) -> run_dbt -> run_analysis (fx + topup)
 """
 

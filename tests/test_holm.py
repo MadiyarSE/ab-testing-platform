@@ -7,7 +7,7 @@ from stats_engine.core import holm_correction
 
 
 def test_holm_all_significant():
-    """Если все p-value очень маленькие, все гипотезы должны быть отклонены."""
+    """If all p-values are very small, all hypotheses should be rejected."""
     pvalues = [0.001, 0.002, 0.003]
     rejected = holm_correction(pvalues, alpha=0.05)
 
@@ -15,7 +15,7 @@ def test_holm_all_significant():
 
 
 def test_holm_none_significant():
-    """Если все p-value большие, ни одна гипотеза не должна быть отклонена."""
+    """If all p-values are large, no hypotheses should be rejected."""
     pvalues = [0.5, 0.6, 0.9]
     rejected = holm_correction(pvalues, alpha=0.05)
 
@@ -23,10 +23,10 @@ def test_holm_none_significant():
 
 
 def test_holm_stops_at_first_failure():
-    """Как только p-value не проходит свой порог, все более крупные p-value
-    (даже потенциально значимые сами по себе) тоже не отклоняются."""
-    # m=3, пороги: 0.05/3≈0.0167, 0.05/2=0.025, 0.05/1=0.05
-    # отсортировано: 0.01 (проходит 0.0167), 0.03 (не проходит 0.025) -> обрыв
+    """Once a p-value fails to meet its threshold, all larger p-values 
+    (even if potentially significant on their own) are also not rejected."""
+    # m=3, thresholds: 0.05/3≈0.0167, 0.05/2=0.025, 0.05/1=0.05
+    # sorted: 0.01 (passes 0.0167), 0.03 (fails 0.025) -> stop
     pvalues = [0.03, 0.01, 0.04]
     rejected = holm_correction(pvalues, alpha=0.05)
 
@@ -34,8 +34,8 @@ def test_holm_stops_at_first_failure():
 
 
 def test_holm_matches_our_topup_experiment():
-    """Регрессионный тест на реальном сценарии: primary metric значим,
-    guardrail-метрики — нет."""
+    """Regression test on a real scenario: primary metric is significant, 
+    guardrail metrics are not."""
     metric_names = ["avg_topup_amount", "fraud_rate", "chargeback_rate"]
     pvalues = [0.000000, 0.101980, 0.948383]
 
@@ -47,7 +47,7 @@ def test_holm_matches_our_topup_experiment():
 
 
 def test_holm_single_pvalue_behaves_like_plain_alpha():
-    """При m=1 порог Holm совпадает с обычным alpha."""
+    """When m=1, the Holm threshold coincides with standard alpha."""
     rejected_significant = holm_correction([0.03], alpha=0.05)
     rejected_not_significant = holm_correction([0.07], alpha=0.05)
 
