@@ -184,3 +184,15 @@ demonstrating awareness of common pitfalls in experimentation:
   rather than treating each day's snapshot as a final result -- the
   day-by-day p-value chart exists specifically to show why "peeking"
   and stopping early is unreliable.
+
+## Acknowledgements
+
+The core statistical methods in this project (linearization, CUPED,
+stratification, and the initial FX experiment design) were developed
+as part of the A/B Testing course by **Karpov.Courses** (ООО "Карпов
+Курсы") -- [karpov.courses](https://karpov.courses/). Everything
+beyond that -- the second experiment (top-up limit increase), the
+day-by-day simulation, the proportions z-test and Holm correction
+integration, the dbt models, the Airflow orchestration, the Streamlit
+dashboard, and the sample size calculator -- was built independently
+as an extension of the course material.
