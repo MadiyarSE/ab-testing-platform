@@ -196,3 +196,23 @@ day-by-day simulation, the proportions z-test and Holm correction
 integration, the dbt models, the Airflow orchestration, the Streamlit
 dashboard, and the sample size calculator -- was built independently
 as an extension of the course material.
+
+## References
+
+The statistical methods used in this project are based on published
+research:
+
+- Xie, H. & Aurisset, J. (2016). *Improving the Sensitivity of Online
+  Controlled Experiments: Case Studies at Netflix*. KDD 2016.
+  [doi.org/10.1145/2939672.2939733](https://doi.org/10.1145/2939672.2939733) --
+  compares stratified sampling, post-stratification, and CUPED as
+  variance reduction techniques.
+- Deng, A., Xu, Y., Kohavi, R., Walker, T. (2013). *Improving the
+  Sensitivity of Online Controlled Experiments by Utilizing
+  Pre-Experiment Data*. WSDM 2013.
+  [doi.org/10.1145/2433396.2433413](https://doi.org/10.1145/2433396.2433413) --
+  the original CUPED paper.
+- Holm, S. (1979). *A Simple Sequentially Rejective Multiple Test
+  Procedure*. Scandinavian Journal of Statistics, 6(2), 65-70 --
+  the multiple-testing correction used for the top-up experiment's
+  guardrail metrics.
